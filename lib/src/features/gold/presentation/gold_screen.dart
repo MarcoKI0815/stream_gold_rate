@@ -3,11 +3,16 @@ import 'package:intl/intl.dart';
 
 class GoldScreen extends StatelessWidget {
   const GoldScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    /// Platzhalter für den Goldpreis
-    /// soll durch den Stream `getGoldPriceStream()` ersetzt werden
-    const double goldPrice = 69.22;
+  Stream<double> getGoldPriceStream() async* {
+    while (true) {
+      // Simuliere einen sich ändernden Goldpreis
+      await Future.delayed(const Duration(seconds: 1));
+      yield 69.22 + (1.0 - 2.0 * (DateTime.now().second % 2));
+    }
+  }
 
     return SafeArea(
       child: Scaffold(
@@ -21,15 +26,22 @@ class GoldScreen extends StatelessWidget {
               Text('Live Kurs:',
                   style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 20),
-              // TODO: Verwende einen StreamBuilder, um den Goldpreis live anzuzeigen
-              // statt des konstanten Platzhalters
-              Text(
-                NumberFormat.simpleCurrency(locale: 'de_DE').format(goldPrice),
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineLarge!
-                    .copyWith(color: Theme.of(context).colorScheme.primary),
-              ),
+              StreamBuilder<double>(
+                stream: getGoldPriceStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                      NumberFormat.currency(
+                        locale: 'de_DE',
+                        symbol: '€',
+                      ).format(snapshot.data),
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    );
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
+              ),// StreamBuilder ist ein Widget, das sich automatisch aktualisiert.
             ],
           ),
         ),
